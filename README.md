@@ -5,6 +5,10 @@ an **ESP32 microcontroller** that auto-switches between them, and a **7-inch
 monitor**. Designed to eliminate rear blind spots and make reversing/lane
 changes safer.
 
+> **Bicycle variant** (`bicycle_option` branch): a 2× ESP32-CAM + ESP32-S3
+> SuperMini rear-view system with computer-vision **distance estimation** — see
+> `docs/bicycle_plan.md` and `docs/components_bicycle.md`.
+
 ---
 
 ## What it does
