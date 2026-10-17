@@ -64,12 +64,20 @@ distance_m = FOCAL_LENGTH_PX × REAL_WIDTH_M / object_width_px
 Both compile (esp32 core 3.3.10). The ESP-NOW message struct must match between
 the two sketches; nodes are fixed on **channel 1** (broadcast).
 
-## 5. BOM (approx, MXN)
+## 5. K210 upgrade (recommended — follow-up)
+
+Replace one (or both) ESP32-CAM nodes with a **Sipeed Maix (K210)** running
+**YOLOv2** on the KPU — see `firmware/k210_node/main.py`. It detects cars /
+buses / persons / bicycles by class and estimates distance with a class-aware
+monocular model, sending the closest object over **UART** to the S3. This fixes
+the ESP32-CAM's main weakness (motion-only, not object detection).
+
+## 6. BOM (approx, MXN)
 
 See `docs/components_bicycle.md` for the full table. Total ≈ **$1,250 MXN**
 (2× ESP32-CAM, S3 SuperMini, ILI9341, power bank, mounts, wiring).
 
-## 6. Milestones
+## 7. Milestones
 
 1. Bench: 1× ESP32-CAM → S3 → TFT, verify distance + color works.
 2. Add the second camera (wide vs close) and the two-panel dashboard.

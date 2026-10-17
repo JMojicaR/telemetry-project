@@ -55,3 +55,53 @@ For a *safety* device, upgrade in this order: **(1) K210 for real detection →
 (3) buzzer → (4) weatherproofing → (2) ToF near-field sensor.** The monocular
 ESP32-CAM build is a great proof-of-concept, but vehicles are safety-critical —
 detecting "a car" (not just "motion") is what actually prevents accidents.
+
+---
+
+## K210 node — implemented (follow-up)
+
+`firmware/k210_node/main.py` is a **Sipeed Maix (K210)** camera node that runs
+**YOLOv2 (20-class VOC)** on the KPU — it detects cars/buses/persons/bicycles
+directly (not just "motion"), and estimates distance with a **class-aware**
+model: `distance = focal_px × real_width[class] / box_width_px`.
+
+| Object | Real width (m) |
+|--------|----------------|
+| car | 1.8 |
+| bus | 2.5 |
+| person | 0.5 |
+| bicycle | 0.6 |
+| motorbike | 0.8 |
+| train | 2.9 |
+
+### Integration with the display unit
+
+The K210 replaces one ESP32-CAM (keep the other, or use two K210s). It sends
+the closest object over **UART** as `class,distance_m,cx,width\n`. Wire the
+K210's **UART1 TX → S3 SuperMini RX**, then read it in the display unit:
+
+```cpp
+// add to display_unit.ino setup():  Serial1.begin(115200, SERIAL_8N1, RX_PIN, -1);
+// add to loop():
+while (Serial1.available()) {
+    String line = Serial1.readStringUntil('\n');
+    int cls, cx, w; float d;
+    if (sscanf(line.c_str(), "%d,%f,%d,%d", &cls, &d, &cx, &w) == 4) {
+        k210Dist = d; lastK210 = millis();   // reuse the color dashboard
+    }
+}
+```
+
+### K210 BOM addition
+
+| Component | Qty | Unit | Total |
+|-----------|-----|------|-------|
+| Sipeed Maix Bit / Dock (K210) + OV2640 | 1–2 | $450 | $450–900 |
+| MicroSD (for the .kmodel) | 1 | $60 | $60 |
+
+### Notes
+
+- Flash MaixPy with **kflash**, copy the Sipeed 20-class `yolo.kmodel` to
+  `/sd/yolo.kmodel` (or rename), and **calibrate `FOCAL_LENGTH_PX`**.
+- MaixPy is MicroPython — `main.py` is flashed to the K210, not compiled with
+  the Arduino toolchain, so it can't be build-tested here (no K210 hardware).
